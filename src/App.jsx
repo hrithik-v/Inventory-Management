@@ -11,15 +11,16 @@ import {
   createRoutesFromElements,
   RouterProvider,
 } from "react-router-dom";
-import Home from "./components/bodyComponents/home/Home";
+import Home from "./components/bodyComponents/Home/Home";
 import Inventory from "./components/bodyComponents/inventory/Inventory";
 import Customer from "./components/bodyComponents/customer/Customer";
 import Revenue from "./components/bodyComponents/revenue/Revenue";
 import Growth from "./components/bodyComponents/growth/Growth";
+import Records from "./components/bodyComponents/records/records";
 import Report from "./components/bodyComponents/report/Report";
 import Setting from "./components/bodyComponents/Settings/Setting";
 import Order from "./components/bodyComponents/order/Order";
-import OrderModal from "./components/bodyComponents/order/OrderModal";
+// import OrderModal from "./components/bodyComponents/order/OrderModal";
 
 function App() {
   const theme = createTheme({
@@ -71,6 +72,7 @@ function App() {
         <Route path="/customers" element={<Customer />}></Route>
         <Route path="/revenue" element={<Revenue />}></Route>
         <Route path="/growth" element={<Growth />}></Route>
+        <Route path="/records" element={<Records />}></Route>
         <Route path="/reports" element={<Report />}></Route>
         <Route path="/settings" element={<Setting />}></Route>
       </Route>

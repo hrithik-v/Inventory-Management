@@ -11,23 +11,23 @@ export default class Inventory extends Component {
     return (
       <Box>
         <Grid container sx={{ mx: 3, p: 3 }}>
-          <Grid item md={9}>
-            <Box
-              sx={{
-                margin: 3,
-                bgcolor: "white",
-                borderRadius: 2,
-                padding: 3,
-                height: "100%",
-              }}
-            >
-              <Typography variant="h5" sx={{ m: 3, fontWeight: "bold" }}>
-                Inventory
-              </Typography>
-              <Products />
-            </Box>
-          </Grid>
-          <Grid item md={3}>
+          {/* <Grid item md={9}> */}
+          <Box
+            sx={{
+              margin: 3,
+              bgcolor: "white",
+              borderRadius: 2,
+              padding: 3,
+              height: "100%",
+            }}
+          >
+            <Typography variant="h5" sx={{ m: 3, fontWeight: "bold" }}>
+              Inventory
+            </Typography>
+            <Products />
+          </Box>
+          {/* </Grid> */}
+          {/* <Grid item md={3}>
             <Box
               sx={{
                 margin: 3,
@@ -42,7 +42,7 @@ export default class Inventory extends Component {
               </Typography>
               <Overview />
             </Box>
-          </Grid>
+          </Grid> */}
         </Grid>
       </Box>
     );

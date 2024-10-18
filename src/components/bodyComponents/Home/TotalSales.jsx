@@ -75,22 +75,23 @@ export default function TotalSales() {
     },
   ];
   return (
-    <Box
-      sx={{
-        margin: 3,
-        bgcolor: "white",
-        borderRadius: 2,
-        padding: 3,
-        height: "100%",
-      }}
-    >
-      <ApexCharts
-        options={options}
-        series={series}
-        height={300}
-        type="line"
-        width="100%"
-      />
-    </Box>
+    <>/</>
+    // <Box
+    //   sx={{
+    //     margin: 3,
+    //     bgcolor: "white",
+    //     borderRadius: 2,
+    //     padding: 3,
+    //     height: "100%",
+    //   }}
+    // >
+    //   <ApexCharts
+    //     options={options}
+    //     series={series}
+    //     height={300}
+    //     type="line"
+    //     width="100%"
+    //   />
+    // </Box>
   );
 }

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Table,
@@ -9,19 +9,30 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
+let baseURL = "https://35lhslhd-3000.inc1.devtunnels.ms";
+
 export default function TopSellingProduct() {
-  const products = [
-    { name: "ASOS Ridey", price: 25.05, quantity: 73, amount: 1.828 },
-    {
-      name: "Philip Morris International",
-      price: 85.05,
-      quantity: 84,
-      amount: 7.144,
-    },
-    { name: "Donna Karan", price: 96.05, quantity: 94, amount: 9.028 },
-    { name: "Marco Pollo", price: 31.09, quantity: 51, amount: 1.585 },
-    { name: "Dolce Gabbana", price: 27.09, quantity: 78, amount: 2.113 },
-  ];
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    const fetchTopProducts = async () => {
+      try {
+        const response = await fetch(baseURL + "/top-products"); // Replace YOUR_PORT with your server port
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+        setProducts(data);
+      } catch (error) {
+        console.error("Error fetching top products:", error);
+      }
+    };
+
+    fetchTopProducts();
+  }, []); // Empty dependency array to run once on mount
+
+  console.log(products);
+
   return (
     <Box
       sx={{
@@ -33,26 +44,24 @@ export default function TopSellingProduct() {
       }}
     >
       <Typography variant="h6" fontWeight={"bold"} sx={{ mx: 3 }}>
-        Top selling products
+        Top 5 Products
       </Typography>
       <TableContainer>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell sx={{ fontWeight: "bolder" }}>Name</TableCell>
-              <TableCell sx={{ fontWeight: "bolder" }}>Price</TableCell>
-              <TableCell sx={{ fontWeight: "bolder" }}>Quantity</TableCell>
-              <TableCell sx={{ fontWeight: "bolder" }}>Amount</TableCell>
+              <TableCell sx={{ fontWeight: "bolder" }}>Issued so far</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {products.map((product, id) => {
               return (
                 <TableRow key={id}>
-                  <TableCell>{product.name}</TableCell>
-                  <TableCell>{product.price}</TableCell>
-                  <TableCell>{product.quantity}</TableCell>
-                  <TableCell>{product.amount}</TableCell>
+                  <TableCell>{product.item_name}</TableCell>{" "}
+                  {/* Use the correct field name from your database */}
+                  <TableCell>{product.issued}</TableCell>{" "}
+                  {/* Use the correct field name for the quantity sold */}
                 </TableRow>
               );
             })}
