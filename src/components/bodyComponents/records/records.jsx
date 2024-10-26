@@ -1,125 +1,168 @@
-import { DeleteOutline, Edit } from "@mui/icons-material";
 import {
   Box,
-  Button,
-  IconButton,
-  Paper,
-  TextField,
   Typography,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
+  TextField,
+  MenuItem,
+  Button,
+  List,
+  ListItem,
+  ListItemText,
 } from "@mui/material";
-import React, { useState } from "react";
-import { DataGrid } from "@mui/x-data-grid";
+import React, { useState, useEffect } from "react";
+
+let baseURL = "https://35lhslhd-3000.inc1.devtunnels.ms";
 
 export default function Records() {
-  const [order, setOrder] = useState({
-    id: 123, // Unique order ID
-    customer: {
-      name: "ADMI ZAKARYAE",
-      position: "Software Engineer",
-      mobile: "+212 6 51 88 61 51",
-    },
-    products: [
-      { id: 1, product: { name: "Product A", stock: 10 }, quantity: 2 },
-      { id: 2, product: { name: "Product B", stock: 5 }, quantity: 1 },
-      { id: 3, product: { name: "Product C", stock: 7 }, quantity: 3 },
-    ],
-  });
+  const [itemId, setItemId] = useState("");
+  const [itemName, setItemName] = useState("");
 
-  const [newTxn, setNewTxn] = useState({
-    product: { name: "", stock: 0 },
-    quantity: 0,
-  });
-  const [editIndex, setEditIndex] = useState(null); // Index for editing
-  const [isDialogOpen, setIsDialogOpen] = useState(false); // Dialog state
+  const [departmentId, setDepartmentId] = useState("");
+  const [departmentName, setDepartmentName] = useState("");
 
-  // Handle opening the dialog for adding or editing
-  const handleOpenDialog = (txn = null) => {
-    if (txn) {
-      setNewTxn(txn); // Edit mode
-      setEditIndex(txn.id);
+  const [manufacturerId, setManufacturerId] = useState("");
+  const [manufacturerName, setManufacturerName] = useState("");
+
+  const [itemSuggestions, setItemSuggestions] = useState([]);
+  const [manufacturerSuggestions, setManufacturerSuggestions] = useState([]);
+  const [departmentSuggestions, setDepartmentSuggestions] = useState([]);
+
+  const [txnType, setTxnType] = useState("");
+  const [qty, setQty] = useState(0);
+  const [pricePerUnit, setPricePerUnit] = useState(0);
+  const [txnDate, setTxnDate] = useState("");
+  const [allItems, setAllItems] = useState([]); // Store all items here
+  const [allManufacturers, setAllManufacturers] = useState([]); // Store all manufacturers here
+  const [allDepartments, setAllDepartments] = useState([]); // Store all departments here
+
+  // Fetch all items, manufacturers, and departments once on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const itemsResponse = await fetch(`${baseURL}/items_names`);
+        const itemsData = await itemsResponse.json();
+        setAllItems(itemsData); // Store fetched items
+
+        const manufacturersResponse = await fetch(`${baseURL}/manuf_names`);
+        const manufacturersData = await manufacturersResponse.json();
+        setAllManufacturers(manufacturersData); // Store fetched manufacturers
+
+        const departmentsResponse = await fetch(`${baseURL}/dept_names`);
+        const departmentsData = await departmentsResponse.json();
+        setAllDepartments(departmentsData); // Store fetched departments
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // Handle item name change and filter suggestions based on common characters
+  const handleItemNameChange = (event) => {
+    const query = event.target.value.toLowerCase();
+    setItemName(query);
+
+    if (query.length > 0) {
+      const suggestions = allItems.filter((item) =>
+        item.item_name.toLowerCase().includes(query)
+      );
+      setItemSuggestions(suggestions);
     } else {
-      setNewTxn({ product: { name: "", stock: 0 }, quantity: 0 }); // Add mode
-      setEditIndex(null);
-    }
-    setIsDialogOpen(true);
-  };
-
-  // Handle closing the dialog
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false);
-  };
-
-  // Handle adding a new transaction (product)
-  const handleAddTxn = () => {
-    if (newTxn.product.name && newTxn.quantity > 0) {
-      setOrder((prevOrder) => ({
-        ...prevOrder,
-        products: [
-          ...prevOrder.products,
-          { ...newTxn, id: prevOrder.products.length + 1 },
-        ],
-      }));
-      handleCloseDialog();
+      setItemSuggestions([]);
     }
   };
 
-  // Handle saving the edited transaction
-  const handleSaveEditTxn = () => {
-    const updatedProducts = order.products.map((txn) =>
-      txn.id === editIndex ? newTxn : txn
-    );
-    setOrder((prevOrder) => ({
-      ...prevOrder,
-      products: updatedProducts,
-    }));
-    handleCloseDialog();
+  // Handle manufacturer name change and filter suggestions
+  const handleManufacturerChange = (event) => {
+    const query = event.target.value.toLowerCase();
+    setManufacturerName(query);
+
+    if (query.length > 0) {
+      const suggestions = allManufacturers.filter((manufacturer) =>
+        manufacturer.manuf_name.toLowerCase().includes(query)
+      );
+      setManufacturerSuggestions(suggestions);
+    } else {
+      setManufacturerSuggestions([]);
+    }
   };
 
-  // Handle deleting a transaction
-  const handleDeleteTxn = (id) => {
-    const filteredTxns = order.products.filter((txn) => txn.id !== id);
-    setOrder((prevOrder) => ({
-      ...prevOrder,
-      products: filteredTxns,
-    }));
+  // Handle department name change and filter suggestions
+  const handleDepartmentChange = (event) => {
+    const query = event.target.value.toLowerCase();
+    setDepartmentName(query);
+
+    if (query.length > 0) {
+      const suggestions = allDepartments.filter((department) =>
+        department.dept_name.toLowerCase().includes(query)
+      );
+      setDepartmentSuggestions(suggestions);
+    } else {
+      setDepartmentSuggestions([]);
+    }
   };
 
-  // Columns configuration for DataGrid
-  const columns = [
-    { field: "id", headerName: "ID", width: 90 },
-    {
-      field: "product.name",
-      headerName: "Product Name",
-      width: 200,
-      valueGetter: (params) => params.row.product.name,
-    },
-    { field: "quantity", headerName: "Quantity", width: 130 },
-    {
-      field: "product.stock",
-      headerName: "Stock Availability",
-      width: 160,
-      valueGetter: (params) => params.row.product.stock,
-    },
-    {
-      field: "actions",
-      headerName: "Actions",
-      width: 150,
-      renderCell: (params) => (
-        <>
-          <IconButton onClick={() => handleOpenDialog(params.row)}>
-            <Edit color="primary" />
-          </IconButton>
-          <IconButton onClick={() => handleDeleteTxn(params.row.id)}>
-            <DeleteOutline color="error" />
-          </IconButton>
-        </>
-      ),
-    },
-  ];
+  const handleSuggestionClick = (suggestion) => {
+    setItemId(suggestion.item_id);
+    setItemName(suggestion.item_name); // Set item name for display
+    setItemSuggestions([]); // Clear suggestions after selecting one
+  };
+
+  const handleManufacturerClick = (suggestion) => {
+    console.log(suggestion);
+    setManufacturerId(suggestion.manuf_id); // Store manufacturer ID in state
+    setManufacturerName(suggestion.manuf_name); // Store manufacturer ID in state
+
+    setManufacturerSuggestions([]); // Clear suggestions after selecting one
+  };
+
+  const handleDepartmentClick = (suggestion) => {
+    setDepartmentId(suggestion.dept_id); // Store department ID in state
+    setDepartmentName(suggestion.dept_name); // Store department ID in state
+    setDepartmentSuggestions([]); // Clear suggestions after selecting one
+  };
+
+  const handleFormSubmit = (event) => {
+    event.preventDefault();
+    const newRecord = {
+      item_id: itemId, // Send item name in API
+      txn_type: txnType,
+      qty: qty,
+      item_price: txnType === "inward" ? pricePerUnit : 0,
+      dept_id: txnType === "issued" ? departmentId : null, // Send department ID
+      manuf_id: txnType === "inward" ? manufacturerId : null, // Send manufacturer ID
+      txn_date: txnDate,
+    };
+
+    console.log(newRecord);
+    // Make a call to your API to submit the newRecord here
+    fetch(`${baseURL}/transactions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newRecord),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Success:", data);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+
+    // Reset form fields
+    setItemId("");
+    setItemName("");
+    setTxnType("");
+    setQty("");
+    setPricePerUnit("");
+    setDepartmentId("");
+    setDepartmentName("");
+    setManufacturerId("");
+    setManufacturerName("");
+    setTxnDate("");
+    // setItemDate("");
+  };
 
   return (
     <Box sx={{ p: 6 }}>
@@ -134,105 +177,162 @@ export default function Records() {
         }}
       >
         <Typography variant="h6" sx={{ m: 3 }}>
-          Order List
-        </Typography>
-
-        {/* DataGrid for Transactions */}
-        <Paper sx={{ height: 400, width: "100%", mb: 3 }}>
-          <DataGrid
-            rows={order.products}
-            columns={columns}
-            pageSize={5}
-            rowsPerPageOptions={[5]}
-            disableSelectionOnClick
-            autoHeight
-          />
-        </Paper>
-
-        {/* Add Transaction Button */}
-        <Button variant="contained" onClick={() => handleOpenDialog()}>
           Add Transaction
-        </Button>
+        </Typography>
+        <form onSubmit={handleFormSubmit}>
+          <TextField
+            label="Item Name"
+            variant="outlined"
+            value={itemName}
+            onChange={handleItemNameChange}
+            fullWidth
+            sx={{ position: "relative" }}
+          />
+          {itemSuggestions.length > 0 && (
+            <List
+              sx={{
+                position: "absolute",
+                zIndex: 1000,
+                width: "100%",
+                bgcolor: "white",
+                border: "1px solid #ccc",
+                maxHeight: 200,
+                overflowY: "auto",
+                mt: 1,
+              }}
+            >
+              {itemSuggestions.map((item) => (
+                <ListItem
+                  // button
+                  key={item.item_id}
+                  onClick={() => handleSuggestionClick(item)}
+                >
+                  <ListItemText primary={item.item_name} />
+                </ListItem>
+              ))}
+            </List>
+          )}
 
-        {/* Dialog for Add/Edit Transaction */}
-        <Dialog open={isDialogOpen} onClose={handleCloseDialog}>
-          <DialogTitle>
-            {editIndex !== null ? "Edit Transaction" : "Add Transaction"}
-          </DialogTitle>
-          <DialogContent>
-            <TextField
-              label="Product Name"
-              value={newTxn.product.name}
-              onChange={(e) =>
-                setNewTxn({
-                  ...newTxn,
-                  product: { ...newTxn.product, name: e.target.value },
-                })
-              }
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Quantity"
-              type="number"
-              value={newTxn.quantity}
-              onChange={(e) =>
-                setNewTxn({ ...newTxn, quantity: parseInt(e.target.value) })
-              }
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Stock Availability"
-              type="number"
-              value={newTxn.product.stock}
-              onChange={(e) =>
-                setNewTxn({
-                  ...newTxn,
-                  product: {
-                    ...newTxn.product,
-                    stock: parseInt(e.target.value),
-                  },
-                })
-              }
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancel</Button>
-            {editIndex !== null ? (
-              <Button onClick={handleSaveEditTxn} variant="contained">
-                Save
-              </Button>
-            ) : (
-              <Button onClick={handleAddTxn} variant="contained">
-                Add
-              </Button>
-            )}
-          </DialogActions>
-        </Dialog>
-
-        {/* Approve/Reject Buttons */}
-        <Paper
-          elevation={0}
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            width: "100%",
-            m: 0,
-          }}
-        >
-          <Button
-            variant="contained"
-            sx={{ bgcolor: "error.main", m: 3, px: 12 }}
+          <TextField
+            label="Transaction Type"
+            variant="outlined"
+            value={txnType}
+            onChange={(e) => setTxnType(e.target.value)}
+            select
+            fullWidth
+            sx={{ mt: 2 }}
           >
-            Reject
+            <MenuItem value="inward">Inward</MenuItem>
+            <MenuItem value="issued">Issued</MenuItem>
+          </TextField>
+
+          <TextField
+            label="Quantity"
+            type="number"
+            variant="outlined"
+            value={qty}
+            onChange={(e) => setQty(e.target.value)}
+            fullWidth
+            sx={{ mt: 2 }}
+          />
+
+          {txnType === "inward" && (
+            <>
+              <TextField
+                label="Price per Unit"
+                type="number"
+                variant="outlined"
+                value={pricePerUnit}
+                onChange={(e) => setPricePerUnit(e.target.value)}
+                fullWidth
+                sx={{ mt: 2 }}
+              />
+              <TextField
+                label="Manufacturer Name"
+                variant="outlined"
+                value={manufacturerName} // This should still display the ID
+                onChange={handleManufacturerChange}
+                fullWidth
+                sx={{ mt: 2 }}
+              />
+              {manufacturerSuggestions.length > 0 && (
+                <List
+                  sx={{
+                    position: "absolute",
+                    zIndex: 1000,
+                    width: "100%",
+                    bgcolor: "white",
+                    border: "1px solid #ccc",
+                    maxHeight: 200,
+                    overflowY: "auto",
+                    mt: 1,
+                  }}
+                >
+                  {manufacturerSuggestions.map((manufacturer) => (
+                    <ListItem
+                      button
+                      key={manufacturer.manuf_id}
+                      onClick={() => handleManufacturerClick(manufacturer)}
+                    >
+                      <ListItemText primary={manufacturer.manuf_name} />
+                    </ListItem>
+                  ))}
+                </List>
+              )}
+            </>
+          )}
+
+          {txnType === "issued" && (
+            <>
+              <TextField
+                label="Department Name"
+                variant="outlined"
+                value={departmentName} // This should still display the ID
+                onChange={handleDepartmentChange}
+                fullWidth
+                sx={{ mt: 2 }}
+              />
+              {departmentSuggestions.length > 0 && (
+                <List
+                  sx={{
+                    position: "absolute",
+                    zIndex: 1000,
+                    width: "100%",
+                    bgcolor: "white",
+                    border: "1px solid #ccc",
+                    maxHeight: 200,
+                    overflowY: "auto",
+                    mt: 1,
+                  }}
+                >
+                  {departmentSuggestions.map((department) => (
+                    <ListItem
+                      button
+                      key={department.dept_id}
+                      onClick={() => handleDepartmentClick(department)}
+                    >
+                      <ListItemText primary={department.dept_name} />
+                    </ListItem>
+                  ))}
+                </List>
+              )}
+            </>
+          )}
+
+          <TextField
+            label="Transaction Date"
+            type="date"
+            variant="outlined"
+            value={txnDate}
+            onChange={(e) => setTxnDate(e.target.value)}
+            fullWidth
+            sx={{ mt: 2 }}
+          />
+
+          <Button type="submit" variant="contained" sx={{ mt: 4 }}>
+            Submit
           </Button>
-          <Button variant="contained" sx={{ bgcolor: "#504099", m: 3, px: 12 }}>
-            Approve
-          </Button>
-        </Paper>
+        </form>
       </Box>
     </Box>
   );
