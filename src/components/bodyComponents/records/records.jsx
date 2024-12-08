@@ -7,6 +7,11 @@ import {
   List,
   ListItem,
   ListItemText,
+  Snackbar,
+  Alert,
+  FormControlLabel,
+  Switch,
+  CircularProgress,
 } from "@mui/material";
 import React, { useState, useEffect } from "react";
 
@@ -18,37 +23,46 @@ export default function Records() {
 
   const [departmentId, setDepartmentId] = useState("");
   const [departmentName, setDepartmentName] = useState("");
+  const [personName, setPersonName] = useState("");
+  const [labName, setLabName] = useState("");
 
-  const [manufacturerId, setManufacturerId] = useState("");
+  const [supplierId, setSupplierId] = useState("");
   const [manufacturerName, setManufacturerName] = useState("");
+  const [supplierName, setSupplierName] = useState("");
 
   const [itemSuggestions, setItemSuggestions] = useState([]);
-  const [manufacturerSuggestions, setManufacturerSuggestions] = useState([]);
+  const [supplierSuggestions, setSupplierSuggestions] = useState([]);
   const [departmentSuggestions, setDepartmentSuggestions] = useState([]);
 
-  const [txnType, setTxnType] = useState("");
-  const [qty, setQty] = useState(0);
-  const [pricePerUnit, setPricePerUnit] = useState(0);
+  const [isInward, setIsInward] = useState(true);
+  const [txnType, setTxnType] = useState("inward");
+  const [qty, setQty] = useState("");
+  const [pricePerUnit, setPricePerUnit] = useState("");
   const [txnDate, setTxnDate] = useState("");
-  const [allItems, setAllItems] = useState([]); // Store all items here
-  const [allManufacturers, setAllManufacturers] = useState([]); // Store all manufacturers here
-  const [allDepartments, setAllDepartments] = useState([]); // Store all departments here
+  const [allItems, setAllItems] = useState([]);
+  const [allSuppliers, setAllSuppliers] = useState([]);
+  const [allDepartments, setAllDepartments] = useState([]);
 
-  // Fetch all items, manufacturers, and departments once on component mount
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
+  const [loading, setLoading] = useState(false); // Loader state
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const itemsResponse = await fetch(`${baseURL}/items_names`);
         const itemsData = await itemsResponse.json();
-        setAllItems(itemsData); // Store fetched items
+        setAllItems(itemsData);
 
-        const manufacturersResponse = await fetch(`${baseURL}/manuf_names`);
-        const manufacturersData = await manufacturersResponse.json();
-        setAllManufacturers(manufacturersData); // Store fetched manufacturers
+        const suppliersResponse = await fetch(`${baseURL}/supp_names`);
+        const suppliersData = await suppliersResponse.json();
+        setAllSuppliers(suppliersData);
 
         const departmentsResponse = await fetch(`${baseURL}/dept_names`);
         const departmentsData = await departmentsResponse.json();
-        setAllDepartments(departmentsData); // Store fetched departments
+        setAllDepartments(departmentsData);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -56,7 +70,6 @@ export default function Records() {
     fetchData();
   }, []);
 
-  // Handle item name change and filter suggestions based on common characters
   const handleItemNameChange = (event) => {
     const query = event.target.value.toLowerCase();
     setItemName(query);
@@ -71,22 +84,20 @@ export default function Records() {
     }
   };
 
-  // Handle manufacturer name change and filter suggestions
-  const handleManufacturerChange = (event) => {
+  const handleSupplierChange = (event) => {
     const query = event.target.value.toLowerCase();
-    setManufacturerName(query);
+    setSupplierName(query);
 
     if (query.length > 0) {
-      const suggestions = allManufacturers.filter((manufacturer) =>
-        manufacturer.manuf_name.toLowerCase().includes(query)
+      const suggestions = allSuppliers.filter((supplier) =>
+        supplier.supp_name.toLowerCase().includes(query)
       );
-      setManufacturerSuggestions(suggestions);
+      setSupplierSuggestions(suggestions);
     } else {
-      setManufacturerSuggestions([]);
+      setSupplierSuggestions([]);
     }
   };
 
-  // Handle department name change and filter suggestions
   const handleDepartmentChange = (event) => {
     const query = event.target.value.toLowerCase();
     setDepartmentName(query);
@@ -100,41 +111,48 @@ export default function Records() {
       setDepartmentSuggestions([]);
     }
   };
+  const handlePersonChange = (event) => {
+    const query = event.target.value;
+    setPersonName(query);
+  };
+  const handleLabChange = (event) => {
+    const query = event.target.value;
+    setLabName(query);
+  };
 
   const handleSuggestionClick = (suggestion) => {
     setItemId(suggestion.item_id);
-    setItemName(suggestion.item_name); // Set item name for display
-    setItemSuggestions([]); // Clear suggestions after selecting one
+    setItemName(suggestion.item_name);
+    setItemSuggestions([]);
   };
 
-  const handleManufacturerClick = (suggestion) => {
-    console.log(suggestion);
-    setManufacturerId(suggestion.manuf_id); // Store manufacturer ID in state
-    setManufacturerName(suggestion.manuf_name); // Store manufacturer ID in state
-
-    setManufacturerSuggestions([]); // Clear suggestions after selecting one
+  const handleSupplierClick = (suggestion) => {
+    setSupplierId(suggestion.supp_id);
+    setSupplierName(suggestion.supp_name);
+    setSupplierSuggestions([]);
   };
 
   const handleDepartmentClick = (suggestion) => {
-    setDepartmentId(suggestion.dept_id); // Store department ID in state
-    setDepartmentName(suggestion.dept_name); // Store department ID in state
-    setDepartmentSuggestions([]); // Clear suggestions after selecting one
+    setDepartmentId(suggestion.dept_id);
+    setDepartmentName(suggestion.dept_name);
+    setDepartmentSuggestions([]);
   };
 
   const handleFormSubmit = (event) => {
     event.preventDefault();
     const newRecord = {
-      item_id: itemId, // Send item name in API
+      item_id: itemId,
       txn_type: txnType,
-      qty: qty,
-      item_price: txnType === "inward" ? pricePerUnit : 0,
-      dept_id: txnType === "issued" ? departmentId : null, // Send department ID
-      manuf_id: txnType === "inward" ? manufacturerId : null, // Send manufacturer ID
-      txn_date: txnDate,
+      qty: parseInt(qty),
+      item_price: txnType === "inward" ? parseInt(pricePerUnit) : null,
+      dept_id: txnType === "issued" ? departmentId : null,
+      person_name: txnType === "issued" ? personName : null,
+      lab_name: txnType === "issued" ? labName : null,
+      supp_id: txnType === "inward" ? supplierId : null,
     };
 
-    console.log(newRecord);
-    // Make a call to your API to submit the newRecord here
+    setLoading(true); // Start loader
+
     fetch(`${baseURL}/transactions`, {
       method: "POST",
       headers: {
@@ -142,30 +160,64 @@ export default function Records() {
       },
       body: JSON.stringify(newRecord),
     })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Success:", data);
+      .then((response) => {
+        if (response.ok) {
+          return response.json().then((data) => {
+            setSnackbarMessage("Transaction added successfully!");
+            setSnackbarSeverity("success");
+            setSnackbarOpen(true);
+          });
+        } else {
+          // Extract error message from the server's response
+          return response.json().then((errorData) => {
+            const errorMessage = errorData.error || "Failed to add transaction";
+            throw new Error(errorMessage);
+          });
+        }
       })
       .catch((error) => {
         console.error("Error:", error);
+        setSnackbarMessage(error.message); // Display server error message
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
+      })
+      .finally(() => {
+        setLoading(false); // Stop loader
+        // Reset form fields
+        setItemId("");
+        setItemName("");
+        setQty("");
+        setPricePerUnit("");
+        setDepartmentId("");
+        setPersonName("");
+        setLabName("");
+        setDepartmentName("");
+        setSupplierId("");
+        setManufacturerName("");
+        setSupplierName("");
+        setTxnDate("");
       });
-
-    // Reset form fields
-    setItemId("");
-    setItemName("");
-    setTxnType("");
-    setQty("");
-    setPricePerUnit("");
-    setDepartmentId("");
-    setDepartmentName("");
-    setManufacturerId("");
-    setManufacturerName("");
-    setTxnDate("");
-    // setItemDate("");
   };
 
   return (
     <Box sx={{ p: 6 }}>
+      <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
+        <Typography variant="h7" sx={{ marginRight: 2 }}>
+          Transaction Type:
+        </Typography>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={txnType === "inward"}
+              onChange={(e) =>
+                setTxnType(e.target.checked ? "inward" : "issued")
+              }
+              color="primary"
+            />
+          }
+          label={txnType.charAt(0).toUpperCase() + txnType.slice(1)}
+        />
+      </Box>
       <Box
         sx={{
           borderRadius: 2,
@@ -203,7 +255,6 @@ export default function Records() {
             >
               {itemSuggestions.map((item) => (
                 <ListItem
-                  // button
                   key={item.item_id}
                   onClick={() => handleSuggestionClick(item)}
                 >
@@ -212,19 +263,6 @@ export default function Records() {
               ))}
             </List>
           )}
-
-          <TextField
-            label="Transaction Type"
-            variant="outlined"
-            value={txnType}
-            onChange={(e) => setTxnType(e.target.value)}
-            select
-            fullWidth
-            sx={{ mt: 2 }}
-          >
-            <MenuItem value="inward">Inward</MenuItem>
-            <MenuItem value="issued">Issued</MenuItem>
-          </TextField>
 
           <TextField
             label="Quantity"
@@ -247,15 +285,23 @@ export default function Records() {
                 fullWidth
                 sx={{ mt: 2 }}
               />
-              <TextField
+              {/* <TextField
                 label="Manufacturer Name"
                 variant="outlined"
-                value={manufacturerName} // This should still display the ID
+                value={manufacturerName}
                 onChange={handleManufacturerChange}
                 fullWidth
                 sx={{ mt: 2 }}
+              /> */}
+              <TextField
+                label="Supplier Name"
+                variant="outlined"
+                value={supplierName}
+                onChange={handleSupplierChange}
+                fullWidth
+                sx={{ mt: 2 }}
               />
-              {manufacturerSuggestions.length > 0 && (
+              {supplierSuggestions.length > 0 && (
                 <List
                   sx={{
                     position: "absolute",
@@ -268,13 +314,12 @@ export default function Records() {
                     mt: 1,
                   }}
                 >
-                  {manufacturerSuggestions.map((manufacturer) => (
+                  {supplierSuggestions.map((supplier) => (
                     <ListItem
-                      button
-                      key={manufacturer.manuf_id}
-                      onClick={() => handleManufacturerClick(manufacturer)}
+                      key={supplier.supp_id}
+                      onClick={() => handleSupplierClick(supplier)}
                     >
-                      <ListItemText primary={manufacturer.manuf_name} />
+                      <ListItemText primary={supplier.supp_name} />
                     </ListItem>
                   ))}
                 </List>
@@ -283,43 +328,60 @@ export default function Records() {
           )}
 
           {txnType === "issued" && (
+            <TextField
+              label="Department Name"
+              variant="outlined"
+              value={departmentName}
+              onChange={handleDepartmentChange}
+              fullWidth
+              sx={{ mt: 2 }}
+            />
+          )}
+          {departmentSuggestions.length > 0 && (
+            <List
+              sx={{
+                position: "absolute",
+                zIndex: 1000,
+                width: "100%",
+                bgcolor: "white",
+                border: "1px solid #ccc",
+                maxHeight: 200,
+                overflowY: "auto",
+                mt: 1,
+              }}
+            >
+              {departmentSuggestions.map((department) => (
+                <ListItem
+                  key={department.dept_id}
+                  onClick={() => handleDepartmentClick(department)}
+                >
+                  <ListItemText primary={department.dept_name} />
+                </ListItem>
+              ))}
+            </List>
+          )}
+          {txnType == "issued" && (
             <>
               <TextField
-                label="Department Name"
+                label="Person Name"
                 variant="outlined"
-                value={departmentName} // This should still display the ID
-                onChange={handleDepartmentChange}
+                value={personName}
+                onChange={handlePersonChange}
                 fullWidth
                 sx={{ mt: 2 }}
               />
-              {departmentSuggestions.length > 0 && (
-                <List
-                  sx={{
-                    position: "absolute",
-                    zIndex: 1000,
-                    width: "100%",
-                    bgcolor: "white",
-                    border: "1px solid #ccc",
-                    maxHeight: 200,
-                    overflowY: "auto",
-                    mt: 1,
-                  }}
-                >
-                  {departmentSuggestions.map((department) => (
-                    <ListItem
-                      button
-                      key={department.dept_id}
-                      onClick={() => handleDepartmentClick(department)}
-                    >
-                      <ListItemText primary={department.dept_name} />
-                    </ListItem>
-                  ))}
-                </List>
-              )}
+              <TextField
+                label="Lab Name"
+                variant="outlined"
+                value={labName}
+                onChange={handleLabChange}
+                fullWidth
+                sx={{ mt: 2 }}
+              />
             </>
           )}
 
-          <TextField
+          {/* <TextField
             label="Transaction Date"
             type="date"
             variant="outlined"
@@ -327,13 +389,35 @@ export default function Records() {
             onChange={(e) => setTxnDate(e.target.value)}
             fullWidth
             sx={{ mt: 2 }}
-          />
-
-          <Button type="submit" variant="contained" sx={{ mt: 4 }}>
-            Submit
+            InputLabelProps={{
+              shrink: true,
+            }}
+          /> */}
+          <Button
+            variant="contained"
+            color="primary"
+            type="submit"
+            sx={{ mt: 3 }}
+            disabled={loading} // Disable button while loading
+          >
+            {loading ? <CircularProgress size={24} /> : "Submit"}
           </Button>
         </form>
       </Box>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setSnackbarOpen(false)}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity={snackbarSeverity}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
