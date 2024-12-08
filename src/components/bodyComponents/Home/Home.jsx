@@ -107,14 +107,14 @@ const Home = () => {
         ))}
       </Grid>
 
-      <Grid container sx={{ marginX: 3 }}>
+      {/* <Grid container sx={{ marginX: 3 }}>
         <Grid item md={8}>
           <TotalSales data={{ procured, issued }} />
         </Grid>
         <Grid item md={4}>
           <SalesByCity data={{ procured, issued }} />
         </Grid>
-      </Grid>
+      </Grid> */}
 
       <Grid container sx={{ margin: 3 }}>
         <Grid item md={6}>

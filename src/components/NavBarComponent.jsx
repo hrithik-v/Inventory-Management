@@ -63,15 +63,15 @@ export default function NavBarComponent() {
                     mx: 2,
                     display: { xs: "none", md: "flex" },
                     fontWeight: 700,
-                    letterSpacing: ".2rem",
+                    // letterSpacing: ".2rem",
                     color: "inherit",
                     textDecoration: "none",
                   }}
                 >
-                  ADIMS
+                  DTU Computer Centre
                 </Typography>
 
-                <Box
+                {/* <Box
                   sx={{
                     display: "flex",
                     justifyContent: "right",
@@ -108,7 +108,7 @@ export default function NavBarComponent() {
                     </Tooltip>
                   </IconButton>
                   <Typography fontFamily={"Inter"}>ADMI ZAKARYAE</Typography>
-                </Box>
+                </Box> */}
 
                 <Menu
                   open={open}
